@@ -1,12 +1,7 @@
 import csv
-# import pandas as pd
 import random as r
 
-
-# realdata = []
-
-# f = open('/home/usacys/Desktop/Charron/python/fakephonenumber.csv', 'w')
-
+# this creates the 'real' data so we have something to analyze
 def writeARealCallExchange():
     t = r.randint(1400,2100)
     dur = r.randint(15,60)
@@ -20,7 +15,7 @@ def writeARealCallExchange():
     data = [caller,dur,callee,t]
     writer.writerow(data)
 
-
+# this creates the fake 'chaff' data
 def writefakedata():
     dur = r.randint(15,60)
     t = r.randint(1400,2100)
@@ -29,14 +24,15 @@ def writefakedata():
     data = [f'{a}-{b}',dur,f'{a}-{c}',t]
     writer.writerow(data)
 
-
+# define the 'real' phone numbers we care about "a" enforces the 555 area code
 fran = '555-6969'
 mule = '555-3452'
 actcell = '555-6632'
+# the collum titles
 header = ['phone_number', 'call_duration', 'recipient', 'time']
 a = '555'
 
-
+# first line creates the .csv | 'w' makes it writeable | rest of the code uses the functions to generate the call log
 with open('fakephonenumber.csv', 'w') as f:
     writer = csv.writer(f)
     writer.writerow(header)
@@ -46,21 +42,8 @@ with open('fakephonenumber.csv', 'w') as f:
         for fake in range(d):
             writefakedata()
             
-            
-
-        
-
-
-
-
-
-
-
-
-
-
-# writer.writerow('row')
+# this closes the file and saves
 f.close
 
-# print(f'{a}-{b}')
+
 
