@@ -2,6 +2,6 @@
 import random as r
 plaintext = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789/?.>,<!@#$%^&*()-_=+[{]}|`~'
 listtext = list(plaintext)
-key = r.sample(listtext, k=37)
+key = r.sample(listtext, k=len(plaintext))
 output = ''.join(key)
 print(output)
