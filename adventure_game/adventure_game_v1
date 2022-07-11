@@ -1,0 +1,76 @@
+from adventurelib import *
+import adventurelib
+import random as r
+# player stuff
+def prompt():
+    return '\u2665{hp}\u2665 > '.format(hp=player_hp)
+player_hp = 10
+adventurelib.prompt = prompt
+
+# room information
+@when('look')
+def look():
+    print(current_room)
+current_room = 'You are standing in the middle of a gloomly lit stone room, with a straw carpet.\nA giant rat cowers in the corner.\nTo your north there is an iron door with a keyhole...\nIt appears locked'
+
+# monster information
+giant_rat_hp = r.randint(3,5)
+
+
+# COMBAT!!!!
+@when('attack rat')
+def attack_rat():
+    global giant_rat_hp
+    global player_hp
+    player_hit = r.randint(1,100)
+    if giant_rat_hp > 0:    
+        if player_hit <= 60:
+            dmg = r.randint(1,2)
+            say(f'You strike the giant rat for {dmg} \u2665!')
+            giant_rat_hp -= dmg
+        else:
+            say('you barely missed the giant rat, and strike the stone floor with your sword')
+        rat_hit = r.randint(1,100)
+        if rat_hit <= 30 and giant_rat_hp > 0:
+            dmg = r.randint(1,3)
+            say(f'The giant rat sinks its teeth into your arm for {dmg} \u2665!')
+            player_hp -= dmg
+        elif giant_rat_hp <= 0:
+            say('The giant rat has died.. ')
+        elif rat_hit > 30:
+            say('The giant rat lunges at you but misses!')
+    else:
+        say('The giant rat is dead')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def no_command_matches(command):
+    print(r.choice([
+        'Huh?',
+        'Sorry?',
+        'I beg your pardon?'
+    ]))
+adventurelib.no_command_matches = no_command_matches
+start(help=False)
