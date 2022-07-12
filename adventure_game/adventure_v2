@@ -1,0 +1,287 @@
+from adventurelib import *
+import adventurelib
+import random as r
+"""player stuff"""
+player_hp = 10
+playername = input('Please enter a name\n')
+playerdmgmodifier = 0
+def prompt():
+    global player_hp
+    if player_hp <= 0: # how the player dies
+        print('you have died')
+        input('Push ENTER to exit.')
+        exit()
+    return '\u2665{hp}\u2665 > '.format(hp=player_hp)
+adventurelib.prompt = prompt
+# how the player moves.
+# @when('north', direction='north')
+# @when('south', direction='south')
+# @when('east', direction='east')
+# @when('west', direction='west')
+# def go(direction):
+#     global current_room
+#     if current_room.can_exit == True:
+#         room = current_room.exit(direction)
+#         if room:
+#             current_room = room
+#             print(f'You go {direction}.')
+#             look()
+#     else:
+#         print(f"You can't go {direction} right now...")
+
+@when('look')
+def look():
+    print(current_room)
+
+# inventory
+inventory = Bag()
+
+@when('inventory')
+def show_inventory():
+    print('You have: ')
+    if not inventory:
+        print('*nothing*')
+    for item in inventory:
+        print(f'*{item}')
+# a small easter egg
+playermorale = 0
+@when('kill')
+def kill():
+    say('For no reason at all... you shout KILL!')
+    say('It seems to give you some morale...')
+    global playermorale
+    playermorale += 1
+    if playermorale >= 10:
+        say('Congrats Westdyk...\nFalse motivation is better than no motivation I guess')
+# how to loot rooms
+
+
+    
+    
+# @when('kill player')
+# def kill_player()
+#     global player_hp
+#     player_hp -= 10
+
+"""ROOMS"""
+# prison cell
+prison_cell = Room("""
+You are standing in the middle of a gloomly lit stone room, with a straw carpet.
+A giant rat cowers in the corner. To your north there is an iron door.
+""")
+set_context('prison')
+# loot in the room
+prisonitems = Bag([
+    Item(name='key'),
+    Item('dead rat','rat carcass')
+])
+
+# room statements
+Room.can_exit = True
+Room.can_attack_rat = False
+prison_cell.can_attack_rat = True
+prison_cell.can_exit = False
+current_room = prison_cell
+
+# @when('grab key')
+# def take_key():
+#     if current_room.can_pick_up_iron_key:
+#         say('You pick up the key. You put it in your pocket.')
+#         inventory.add(iron_key)
+#     else:
+#         say('What key?')
+# prison loot
+@when('look around', context='prison')
+def look_prison():
+    print('You look around and find:')
+    if get_context() == 'prison.rat_ded':
+        for item in prisonitems:
+            print(f'*{item}')
+    else:
+        say('*nothing*')
+@when('take ITEM', context='prison')
+def take_prison(item):
+    if get_context() == 'prison.rat_ded':
+        if item in prisonitems:
+            prisonitems.take(item)
+            inventory.add(item)
+            print(f'you take the {item}')
+        else:
+            say('Hmm... That does not exist')
+    else:
+        say('There is nothing of intrest here.')
+
+@when('cheat')
+def cheat():
+    global giant_rat_hp 
+    giant_rat_hp -= 5
+    set_context('prison.rat_ded')#console cheat
+
+@when('use ITEM on door', context='prison')
+def unlock_door(item):
+    obj = inventory.take(item)
+    if not item:
+        print(f"You use the {item} on the door... It does nothing")
+    else:
+        print(f"The {item} slides into the lock.\nThe door swings open but the key seems to be jammed in the lock.")
+        set_context('prison.dooropen')
+
+@when('enter iron door', context='prison.dooropen')
+def exit_cell():
+    global current_room
+    if get_context() == 'prison.dooropen':
+        current_room = prison_cell.north
+        say('you walk through the iron door')
+        set_context('hallway')
+        look()
+    elif get_context() == 'hallway':
+        current_room = hallway.south
+        say('you walk through the iron door')
+        set_context('prison')
+        look()
+    else:
+        say("You can't do that right now")
+
+
+
+# hallway
+hallway = Room("""
+You make your way into a hallway. A small weapons rack sits to the north along a wall.
+Two doors are on either side of the room. A cabinet with glowing liquid sits next to the cell door
+""")
+prison_cell.north = hallway
+hallway.loot = Bag([ Item('health potion (+5 HP)','health potion'),Item('short sword (+2 DMG)','sword')
+    ])
+sword = Item('short sword (+2 DMG)','sword')
+health_potion = Item('health potion (+5 HP)','health potion')
+@when('take ITEM', context='hallway')
+def loot_hallway(item):
+    obj = hallway.loot.take(item)
+    if not obj:
+        print(f'There is no {item}')
+    else:
+        inventory.add(obj)
+        print(f'You take the {obj}')
+
+
+    
+
+
+
+
+
+
+
+# armory
+armory = Room("""
+armory
+""")
+hallway.east = armory
+# library
+library = Room("""
+library
+""")
+hallway.west = library
+
+# dungeon
+dungeon = Room("""
+dungeon
+""")
+armory.south = dungeon
+# laboratory
+laboritory = Room("""
+laboritory
+""")
+dungeon.east = laboritory
+# secret room
+seecret_room = Room("""
+secret_room
+""")
+library.east = seecret_room
+# dining
+dining_room = Room("""
+dining_room
+""")
+library.north = dining_room
+# main hall
+main_hall = Room("""
+main_hall
+""")
+
+
+# monster information
+giant_rat_hp = r.randint(3,5)
+
+
+
+
+
+
+
+
+
+# COMBAT!!!!
+@when('attack rat')
+def attack_rat():
+    if current_room.can_attack_rat:
+        global giant_rat_hp
+        global player_hp
+        player_hit = r.randint(1,100)
+        if giant_rat_hp > 0:    
+            if player_hit <= 70:
+                dmg = r.randint(1,2)
+                say(f'You strike the giant rat for {dmg} ♥!')
+                giant_rat_hp -= dmg
+            else:
+                say('you barely missed the giant rat, and strike the stone floor with your fist')
+            rat_hit = r.randint(1,100)
+            if rat_hit <= 30 and giant_rat_hp > 0:
+                dmg = r.randint(1,3)
+                say(f'The giant rat sinks its teeth into your arm for {dmg} \u2665!')
+                player_hp -= dmg
+            elif giant_rat_hp <= 0:
+                say('The giant rat has died.. ')
+                set_context('prison.rat_ded')
+                say('A small iron key hangs around its neck')
+            elif rat_hit > 30:
+                say('The giant rat lunges at you but misses!')
+        else:
+            say('The giant rat is dead')
+            
+            
+    else:
+        print('What rat?')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+prison_cell.north = hallway
+hallway.east = armory
+hallway.west = library
+
+look()
+def no_command_matches(command):
+    print(r.choice([
+        'Huh?',
+        'Sorry?',
+        'I beg your pardon?'
+    ]))
+adventurelib.no_command_matches = no_command_matches
+start()
