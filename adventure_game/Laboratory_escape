@@ -115,11 +115,24 @@ courtyard.west = main_hall
 @when('go DIRECTION')
 def go_room(direction):
     global current_room
-    room = current_room.exit(direction)
-    if room:
-        current_room = room
-        print(f'You enter the {direction}.')
-        look()
+    global player_hp
+    if get_context() == 'laboratory.notclear':
+        say('As you approach the door, the figure breaks free of his shackels and lunges toward you.')
+        hit = r.randint(1,100)
+        if hit >= 65:
+            t.sleep(1)
+            dmg = r.randint(1,4)
+            player_hp -= dmg
+            print(f'The creature manages to strike you, dealing {dmg} damage!')
+        set_context('laboratory.combat')
+    else:
+        room = current_room.exit(direction)
+        if room:
+            current_room = room
+            print(f'You go {direction}.')
+            look()
+
+
 
 @when('take ITEM')
 def loot_room(item):
@@ -144,16 +157,7 @@ def look_around():
 
 """laboratory things"""
 monsterhp = r.randint(2,4)
-@when('go study', context = 'laboratory.notclear')
-@when('go hall', context = 'laboratory.notclear')
-def try_to_leave():
-    if get_context() == 'laboratory.notclear':    
-        say('As you approach the door, the figure breaks free of his shackels and lunges toward you.')
-        hit = r.randint(1,100)
-        if hit >= 65:
-            dmg = r.randint(1,4)
-            player_hp -= dmg
-            set_context('laboratory.combat')
+
 @when('attack monster', context = 'laboratory.combat')
 def attack_monster():
     global playerdmgmodifier
@@ -173,7 +177,20 @@ def attack_monster():
             print(text)
             monsterhp -= dmg
         else:
-            say('')
+            say('You missed, and nearly lost your footing')
+        hit = r.randint(1,100)
+        if hit >= 60:
+            dmg = r.randint(1,4)
+            player_hp -= dmg
+            say(f'The monster hits you for {dmg} Damage')
+        else:
+            say('The monster swings at you but misses') 
+        if monsterhp <= 0:
+            say('the monster falls over in a pool of its own blood...')
+            set_context('laboratory.clear')
+    else:
+        say('The monster is already dead.. but you hit it anyways')
+    
 
 
 
@@ -216,7 +233,7 @@ t.sleep(2)
 
 
 current_room = laboratory
-set_context('laboratory')
+set_context('laboratory.notclear')
 look()
 def no_command_matches(command):
     print(r.choice([
